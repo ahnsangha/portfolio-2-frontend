@@ -146,7 +146,7 @@ export default function AnalysisForm({ onStart }) {
 
       const data = await response.json();
       onStart(data.task_id);
-      try { (await import('../layout/analysisMode')).setAnalysisMode(true); } catch (e) { }
+      // try { (await import('../layout/analysisMode')).setAnalysisMode(true); } catch (e) { }
 
     } catch (error) {
       console.error("분석 시작 중 오류 발생:", error);
