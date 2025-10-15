@@ -19,6 +19,7 @@ export default function AnalysisForm({ onStart }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedMarket, setSelectedMarket] = useState('all');
   const [totalStockCount, setTotalStockCount] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('분석 시작');
 
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
