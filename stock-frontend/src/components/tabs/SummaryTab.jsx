@@ -1,4 +1,4 @@
-// ahnsangha/portfolio-2-frontend/portfolio-2-frontend-217b54b6ff2088b6ce16c4a81a977a19a83b4f79/stock-frontend/src/components/tabs/SummaryTab.jsx
+// components/tabs/SummaryTab.jsx
 
 import { BarChart2, Calendar, AlertTriangle } from 'lucide-react';
 
