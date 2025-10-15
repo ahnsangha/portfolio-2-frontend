@@ -412,7 +412,7 @@ export default function AnalysisForm({ onStart }) {
         {isLoading ? (
           <Loader2 className="w-5 h-5 mr-3 inline-block animate-spin" />
             ) : (
-              <Play className="w-5 h-g mr-3 inline-block group-hover:scale-110 transition-transform" />
+              <Play className="w-5 h-5 mr-3 inline-block group-hover:scale-110 transition-transform" />
             )}
         {isLoading ? loadingMessage : '분석 시작'}
       </button>
