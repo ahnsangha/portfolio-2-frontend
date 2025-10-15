@@ -1,4 +1,4 @@
-// ahnsangha/portfolio-2-frontend/portfolio-2-frontend-217b54b6ff2088b6ce16c4a81a977a19a83b4f79/stock-frontend/src/components/ResultTabs.jsx
+// components/ResultTabs.jsx
 
 import { useEffect, useState } from 'react';
 import { BarChart2, BarChart3, TrendingUp, Layers, AlertTriangle } from 'lucide-react';
