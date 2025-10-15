@@ -13,6 +13,7 @@ import InteractiveCorrVsVol from "../charts/InteractiveCorrVsVol";
 import InteractiveQuarterlyCorrPairs from "../charts/InteractiveQuarterlyCorrPairs";
 import InteractiveFxCorr60d from "../charts/InteractiveFxCorr60d";
 import ZoomableImage from "../common/ZoomableImage";
+import { API_BASE_URL } from "../../constants";
 import { Square, LayoutGrid, Info } from "lucide-react";
 
 // 세로 나열용 심플 스택 아이콘 
@@ -306,7 +307,7 @@ export default function ChartTab({ taskId, isDark: isDarkProp }) {
     };
   }, [isDarkProp]);
 
-  const API_BASE = "http://localhost:8000";
+  // const API_BASE = "http://localhost:8000"; 라이브 서버에서는 제외
 
   // 라벨 매핑 (컴포넌트 안으로 이동)
   const LABELS = {
@@ -706,7 +707,7 @@ export default function ChartTab({ taskId, isDark: isDarkProp }) {
       setLoading(true);
 
       const kind = type === "correlation" ? "correlation_heatmap" : type;
-      let url = `${API_BASE}/analysis/chart/${taskId}/${kind}`;
+      let url = `${API_BASE_URL}/analysis/chart/${taskId}/${kind}`;
       const qs = new URLSearchParams();
 
       if (["basic", "advanced", "performance", "ml"].includes(kind)) {

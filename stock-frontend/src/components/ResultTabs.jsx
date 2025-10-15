@@ -5,12 +5,14 @@ import SummaryTab from './tabs/SummaryTab';
 import ChartTab from './tabs/ChartTab';
 import PerformanceTab from './tabs/PerformanceTab';
 import CorrelationTab from './tabs/CorrelationTab';
+import { API_BASE_URL } from '../constants';
 import '../styles/analysis-mode.css';
 
 export default function ResultTabs({ taskId, onAnalysisComplete }) {
   const [activeTab, setActiveTab] = useState('summary');
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('분석 결과를 기다리는 중입니다...'); // 진행 메시지 상태 추가
   const [error, setError] = useState(null);
 
   const timerRef = useRef(null);
@@ -32,47 +34,24 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
     abortRef.current = new AbortController();
 
     try {
-      const res = await fetch(`http://localhost:8000/analysis/result/${currentTaskId}`, {
+      const res = await fetch(`${API_BASE_URL}/analysis/result/${currentTaskId}`, {
         signal: abortRef.current.signal,
       });
 
-      // 404 → 세션 만료/없는 taskId. 스피너 종료 + 안내
-      if (res.status === 404) {
-        stopPolling();
-        setLoading(false);
-        setResult(null);
-        setError('분석 세션이 만료되었거나 존재하지 않습니다. "분석 시작"으로 다시 실행해 주세요.');
-        return;
+      // 백엔드에서 받은 진행 메시지를 상태에 저장
+      if (data.status !== 'completed' && data.message) {
+        setLoadingMessage(data.message);
       }
-
-      // 202 → 처리 중. 계속 폴링
-      if (res.status === 202) {
-        setError(null);
-        setLoading(true);
-        scheduleNext(currentTaskId);
-        return;
-      }
-
-      if (!res.ok) {
-        stopPolling();
-        setLoading(false);
-        setError(`오류가 발생했습니다. (HTTP ${res.status})`);
-        return;
-      }
-
-      const data = await res.json();
-      setError(null);
-      setResult(data);
 
       if (data.status === 'completed') {
         stopPolling();
+        setResult(data);
         if (!hasCompletedRef.current) {
           onAnalysisComplete?.();
           hasCompletedRef.current = true;
         }
         setLoading(false);
       } else {
-        // 혹시 다른 상태면 계속 폴링
         setLoading(true);
         scheduleNext(currentTaskId);
       }

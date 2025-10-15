@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { BarChart3, Calendar, Activity, Play, AlertCircle, X, Search, Building2, TrendingUp } from 'lucide-react';
 import PresetLauncher from './presets/PresetLauncher';
+import { API_BASE_URL } from '../constants'; 
 
 export default function AnalysisForm({ onStart }) {
   const [startDate, setStartDate] = useState('2023-01-01');
@@ -26,7 +27,7 @@ export default function AnalysisForm({ onStart }) {
   useEffect(() => {
     const fetchTotalCount = async () => {
       try {
-        const response = await fetch('http://localhost:8000/stocks/list');
+        const response = await fetch(`${API_BASE_URL}/stocks/list`);
         const data = await response.json();
         setTotalStockCount(data.total_count || 0);
       } catch (error) {
@@ -46,7 +47,7 @@ export default function AnalysisForm({ onStart }) {
         try {
           const marketParam = selectedMarket !== 'all' ? `&market=${selectedMarket}` : '';
           const response = await fetch(
-            `http://localhost:8000/stocks/search?q=${encodeURIComponent(searchTerm)}${marketParam}&limit=30`
+            `${API_BASE_URL}/stocks/search?q=${encodeURIComponent(searchTerm)}${marketParam}&limit=30`
           );
           const data = await response.json();
 
@@ -116,7 +117,12 @@ export default function AnalysisForm({ onStart }) {
 
   const handleStart = async () => {
     setIsLoading(true);
+    setLoadingMessage('분석 중...');
     setErrors({});
+
+    const timeoutId = setTimeout(() => {
+        setLoadingMessage('서버에 연결 중... (최대 50초 소요)');
+    }, 3000);
 
     const requestBody = {
       start_date: startDate,
@@ -126,7 +132,7 @@ export default function AnalysisForm({ onStart }) {
     };
 
     try {
-      const response = await fetch('http://localhost:8000/analysis/start', {
+      const response = await fetch(`${API_BASE_URL}/analysis/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -140,11 +146,14 @@ export default function AnalysisForm({ onStart }) {
       const data = await response.json();
       onStart(data.task_id);
       try { (await import('../layout/analysisMode')).setAnalysisMode(true); } catch (e) { }
+
     } catch (error) {
       console.error("분석 시작 중 오류 발생:", error);
       setErrors(prev => ({ ...prev, apiError: `분석 요청 실패: ${error.message}` }));
     } finally {
+      clearTimeout(timeoutId); // ④ 요청이 끝나면 타이머를 반드시 제거
       setIsLoading(false);
+      setLoadingMessage('분석 시작'); // ⑤ 모든 작업 완료 후 버튼 텍스트 초기화
     }
   };
 

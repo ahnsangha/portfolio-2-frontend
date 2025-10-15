@@ -1,25 +1,33 @@
 // components/ApiInfo.jsx
 import { useEffect, useState } from 'react';
 import { Database, FileText } from 'lucide-react';
+import { API_BASE_URL } from '../constants';
 
-// API 기본 URL 설정
-const API_BASE_URL = 'http://localhost:8000';
+// API 기본 URL 설정 (라이브 서버에서는 필요 X)
+// const API_BASE_URL = 'http://localhost:8000';
 
 export default function ApiInfo() {
   const [status, setStatus] = useState('확인 중...');
   const [color, setColor] = useState('text-secondary');
   const [pulse, setPulse] = useState(false);
   const [error, setError] = useState(null);
+  const [isInitialCheck, setIsInitialCheck] = useState(true);
 
   useEffect(() => {
+    let timeoutId = null;
+
     const checkConnection = async () => {
+      // 첫 확인 시 3초 이상 걸리면 "서버 준비 중" 메시지 표시
+      if (isInitialCheck) {
+        timeoutId = setTimeout(() => {
+          setStatus('서버 준비 중... (최대 30초 소요)');
+          setColor('text-info'); // 정보 색상으로 변경
+          setPulse(true);
+        }, 3000);
+      }
+
       try {
-        const response = await fetch(`${API_BASE_URL}/health`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          mode: 'cors',
-          credentials: 'same-origin',
-        });
+        const response = await fetch(`${API_BASE_URL}/health`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
@@ -28,18 +36,26 @@ export default function ApiInfo() {
         setPulse(true);
         setError(null);
       } catch (err) {
-        console.error('API 연결 오류:', err);
         setStatus('연결 실패');
         setColor('text-danger');
         setPulse(false);
         setError(err.message);
+      } finally {
+        // 타임아웃 클리어 및 초기 확인 상태 해제
+        if (isInitialCheck) {
+          clearTimeout(timeoutId);
+          setIsInitialCheck(false);
+        }
       }
     };
 
     checkConnection();
-    const intervalId = setInterval(checkConnection, 5000);
-    return () => clearInterval(intervalId);
-  }, []);
+    const intervalId = setInterval(checkConnection, 10000); // 확인 주기 10초로 변경
+    return () => {
+      clearInterval(intervalId);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []); // 초기 1회만 실행
 
   return (
     <div className="mb-6">
