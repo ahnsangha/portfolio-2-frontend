@@ -1,4 +1,4 @@
-// components/tabs/SummaryTab.jsx
+// ahnsangha/portfolio-2-frontend/portfolio-2-frontend-217b54b6ff2088b6ce16c4a81a977a19a83b4f79/stock-frontend/src/components/tabs/SummaryTab.jsx
 
 import { BarChart2, Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
 
@@ -6,8 +6,6 @@ export default function SummaryTab({ data }) {
   if (!data) return null;
 
   const { period, correlation_stats, stocks_analyzed, collection_status } = data;
-
-  // ✅ 1. 데이터 수집에 실패한 종목만 필터링합니다.
   const failed_stocks = collection_status?.filter(s => s.status !== 'success') || [];
 
   const stats = [
@@ -21,7 +19,6 @@ export default function SummaryTab({ data }) {
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 왼쪽: 분석 기간 및 종목 수 */}
         <div className="bg-panel-darker p-6 rounded-xl">
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <Calendar className="w-5 h-5 mr-2 text-blue-400" />
@@ -37,7 +34,6 @@ export default function SummaryTab({ data }) {
           </div>
         </div>
 
-        {/* 오른쪽: 상관관계 통계 */}
         <div className="bg-panel-darker p-6 rounded-xl">
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <BarChart2 className="w-5 h-5 mr-2 text-purple-400" />
@@ -54,26 +50,29 @@ export default function SummaryTab({ data }) {
         </div>
       </div>
 
-      {/* ✅ 2. 실패한 종목이 있을 경우에만 이 블록을 보여줍니다. */}
+      {/* ✅ --- 가독성 개선을 위해 이 블록의 CSS를 수정했습니다 --- ✅ */}
       {failed_stocks.length > 0 && (
-        <div className="mt-6 bg-yellow-900/30 border border-yellow-700 p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4 flex items-center text-yellow-400">
+        <div className="mt-6 bg-orange-950/40 border border-orange-800/60 p-6 rounded-xl">
+          <h3 className="text-lg font-semibold mb-2 flex items-center text-orange-400">
             <AlertTriangle className="w-5 h-5 mr-2" />
             데이터 수집 실패 ({failed_stocks.length}개)
           </h3>
-          <p className="text-sm text-yellow-300 mb-4">
-            아래 종목들은 데이터 수집에 실패하여 분석에서 제외되었습니다.
+          <p className="text-sm text-orange-400/80 mb-4">
+            아래 종목들은 데이터가 부족하거나 찾을 수 없어 분석에서 제외되었습니다.
           </p>
-          <div className="space-y-3 text-sm max-h-48 overflow-y-auto pr-2">
+          {/* 목록이 길어질 경우를 대비해 스크롤바를 추가하고, 디자인을 개선합니다. */}
+          <div className="space-y-2 text-sm max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
             {failed_stocks.map(stock => (
-              <div key={stock.ticker} className="bg-slate-800 p-3 rounded-lg flex justify-between items-center">
-                <div>
-                  <p className="font-semibold text-white">{stock.name} ({stock.ticker})</p>
-                  <p className="text-slate-400 text-xs mt-1">사유: {stock.error || '알 수 없는 오류'}</p>
+              <div key={stock.ticker} className="bg-orange-900/30 hover:bg-orange-900/60 p-3 rounded-lg transition-colors">
+                <div className="flex justify-between items-center">
+                    <p className="font-semibold text-white">{stock.name} ({stock.ticker})</p>
+                    <span className="text-xs font-mono bg-red-900/70 text-red-300 px-2 py-1 rounded-md">
+                      제외됨
+                    </span>
                 </div>
-                <span className="text-xs font-mono bg-red-900 text-red-300 px-2 py-1 rounded-md">
-                  실패
-                </span>
+                <p className="text-slate-400 text-xs mt-1">
+                  사유: {stock.error || '알 수 없는 오류'}
+                </p>
               </div>
             ))}
           </div>
