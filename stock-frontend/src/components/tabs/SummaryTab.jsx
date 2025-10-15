@@ -1,6 +1,6 @@
-// ahnsangha/portfolio-2-frontend/portfolio-2-frontend-217b54b6ff2088b6ce16c4a81a977a19a83b4f79/stock-frontend/src/components/tabs/SummaryTab.jsx
+// components/tabs/SummaryTab.jsx
 
-import { BarChart2, Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
+import { BarChart2, Calendar, AlertTriangle } from 'lucide-react';
 
 export default function SummaryTab({ data }) {
   if (!data) return null;
@@ -19,38 +19,58 @@ export default function SummaryTab({ data }) {
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-panel-darker p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <Calendar className="w-5 h-5 mr-2 text-blue-400" />
-            분석 기간
-          </h3>
-          <div className="space-y-2 text-sm">
-            <p><strong>시작일:</strong> {period?.start}</p>
-            <p><strong>종료일:</strong> {period?.end}</p>
-            <p><strong>총 거래일:</strong> {period?.trading_days}일</p>
-            <p className="mt-2 pt-2 border-t border-slate-700">
-              <strong>분석된 종목 수:</strong> {stocks_analyzed}개
-            </p>
+        
+        {/* 카드 1: 분석 기간 */}
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl shadow-lg transition-all hover:border-slate-600">
+          <div className="p-5 border-b border-slate-700">
+            <h3 className="text-lg font-semibold flex items-center">
+              <Calendar className="w-5 h-5 mr-3 text-blue-400" />
+              분석 기간
+            </h3>
+          </div>
+          <div className="p-5 space-y-3 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">시작일:</span>
+              <span className="font-mono">{period?.start}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">종료일:</span>
+              <span className="font-mono">{period?.end}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">총 거래일:</span>
+              <span>{period?.trading_days}일</span>
+            </div>
+            <div className="flex justify-between items-center pt-3 border-t border-slate-700/50">
+              <span className="text-slate-300 font-semibold">분석된 종목 수:</span>
+              <span className="font-bold text-lg text-blue-400">{stocks_analyzed}개</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-panel-darker p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <BarChart2 className="w-5 h-5 mr-2 text-purple-400" />
-            상관관계 통계
-          </h3>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            {stats.map(stat => (
-              <div key={stat.label} className="flex justify-between">
-                <span>{stat.label}:</span>
-                <span className="font-semibold">{stat.value}</span>
-              </div>
-            ))}
+        {/* 카드 2: 상관관계 통계 */}
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl shadow-lg transition-all hover:border-slate-600">
+          <div className="p-5 border-b border-slate-700">
+            <h3 className="text-lg font-semibold flex items-center">
+              <BarChart2 className="w-5 h-5 mr-3 text-purple-400" />
+              상관관계 통계
+            </h3>
+          </div>
+          <div className="p-3 text-sm">
+            {/* 각 통계 항목을 리스트 형태로 변경 */}
+            <ul className="space-y-1">
+              {stats.map(stat => (
+                <li key={stat.label} className="flex justify-between items-center px-2 py-2 rounded-md hover:bg-slate-700/50 transition-colors">
+                  <span className="text-slate-400">{stat.label}:</span>
+                  <span className="font-mono font-semibold">{stat.value}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
 
-      {/* ✅ --- 가독성 개선을 위해 이 블록의 CSS를 수정했습니다 --- ✅ */}
+      {/* 데이터 수집 실패 경고창 (기존 디자인 유지) */}
       {failed_stocks.length > 0 && (
         <div className="mt-6 bg-orange-950/40 border border-orange-800/60 p-6 rounded-xl">
           <h3 className="text-lg font-semibold mb-2 flex items-center text-orange-400">
@@ -60,7 +80,6 @@ export default function SummaryTab({ data }) {
           <p className="text-sm text-orange-400/80 mb-4">
             아래 종목들은 데이터가 부족하거나 찾을 수 없어 분석에서 제외되었습니다.
           </p>
-          {/* 목록이 길어질 경우를 대비해 스크롤바를 추가하고, 디자인을 개선합니다. */}
           <div className="space-y-2 text-sm max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
             {failed_stocks.map(stock => (
               <div key={stock.ticker} className="bg-orange-900/30 hover:bg-orange-900/60 p-3 rounded-lg transition-colors">
