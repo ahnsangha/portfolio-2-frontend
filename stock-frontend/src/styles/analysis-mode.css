@@ -1,0 +1,829 @@
+:root {
+  --sidebar-w: 380px;
+  --gap: 16px;
+}
+
+/* ── 기본 레이아웃 (초기 화면 유지) ─────────────────────────────── */
+.analysis-shell {
+  display: block;
+}
+
+/* App.jsx에서 이 래퍼로 감싼 상태 */
+.controls-pane {
+  width: auto;
+  position: static;
+  opacity: 1;
+}
+
+/* 기본값 */
+.results-pane {
+  min-height: auto;
+  overflow: visible;
+}
+
+/* (있으면 유지) */
+.chart-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width:1280px) {
+  .chart-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.chart-card {
+  background: var(--card-bg, #fff);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+}
+
+.chart-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── 분석모드 전환: 이 때만 2열 + 사이드바 적용 ───────────────── */
+.analysis-mode .container {
+  max-width: 100vw !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+@media (min-width:1024px) {
+  .analysis-mode .analysis-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .analysis-mode .controls-pane {
+    width: var(--sidebar-w);
+    position: sticky;
+    top: 12px;
+    transition: width .35s ease, margin .35s ease, opacity .35s ease;
+    opacity: .98;
+  }
+
+  .analysis-mode .results-pane {
+    min-height: calc(100vh - 140px);
+    overflow: visible;
+    transition: transform .35s ease, opacity .35s ease;
+  }
+}
+
+/* ── 부드러운 전환(선택): analysis-anim 클래스와 함께 사용 ─────── */
+@keyframes slideSidebar {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes fadeGrow {
+  from {
+    transform: scale(.985);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (min-width:1024px) {
+  .analysis-anim .controls-pane {
+    animation: slideSidebar .35s ease both;
+  }
+
+  .analysis-anim .results-pane {
+    animation: fadeGrow .35s ease both;
+  }
+}
+
+/* ── 사이드바(analysis-mode)일 때 헤더 타이포/간격 살짝 축소 ── */
+@media (min-width:1024px) {
+  .analysis-mode .controls-pane h1 {
+    font-size: clamp(22px, 2.1vw, 28px) !important;
+    line-height: 1.18 !important;
+    letter-spacing: -.01em;
+  }
+
+  .analysis-mode .controls-pane p {
+    font-size: clamp(13px, 1.2vw, 14px);
+    line-height: 1.45;
+  }
+
+  /* 카드/패널 여백도 살짝 줄여서 넘침 방지 */
+  .analysis-mode .controls-pane .rounded-2xl,
+  .analysis-mode .controls-pane .rounded-xl {
+    padding: 14px !important;
+  }
+
+  /* Flex 줄바꿈 허용(점 표시 행 등) */
+  .analysis-mode .controls-pane .flex.items-center {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── 검색 제안: 한 줄 표시 + 넘치면 말줄임 + 배지/코드 고정폭 ── */
+.controls-pane .ticker-suggestions {
+  left: 0;
+  right: 0;
+}
+
+.controls-pane .ticker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.controls-pane .ticker-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: keep-all;
+  letter-spacing: normal;
+}
+
+.controls-pane .ticker-code,
+.controls-pane .ticker-badge {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* ───────── AnalysisForm: 분석모드에서만 레이아웃 재배치/축소 ───────── */
+@media (min-width: 1024px) {
+
+  /* 날짜/윈도우: 2열로 바꾸고, 윈도우 블록은 다음 줄 전체폭 */
+  .analysis-mode .controls-pane .af-dates-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .analysis-mode .controls-pane .af-window-block {
+    grid-column: 1 / -1 !important;
+  }
+
+  @media (min-width: 1024px) {
+
+    /* 분석모드: 2행 레이아웃
+         1행: [시장선택][프리셋]
+         2행: [검색][검색] (가로 전체) */
+    .analysis-mode .controls-pane .af-market-search {
+      display: grid !important;
+      grid-template-columns: auto auto !important;
+      align-items: center !important;
+      gap: 0.75rem !important;
+    }
+
+    /* 현재 DOM 순서(프리셋, 시장선택, 검색)를 분석모드에서 재배치 */
+    .analysis-mode .controls-pane .af-market-search>*:nth-child(2) {
+      grid-column: 1;
+      grid-row: 1;
+      /* 시장선택 */
+    }
+
+    .analysis-mode .controls-pane .af-market-search>*:nth-child(1) {
+      grid-column: 2;
+      grid-row: 1;
+      /* 프리셋 */
+    }
+
+    .analysis-mode .controls-pane .af-market-search>*:nth-child(3) {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      /* 검색(아래줄 전체) */
+    }
+  }
+
+}
+
+
+
+/* 선택된 종목 칩: 사이드바에서만 더 컴팩트하게 */
+.analysis-mode .controls-pane .ticker-chip {
+  font-size: 12px !important;
+  padding: 0.375rem 0.625rem !important;
+  /* px-2.5 py-1.5 */
+  border-width: 1px !important;
+  box-shadow: none !important;
+}
+
+.analysis-mode .controls-pane .ticker-chip .chip-badge {
+  font-size: 10px !important;
+  padding: 0.25rem 0.375rem !important;
+  /* px-1.5 py-0.5 */
+  margin-left: 0.25rem !important;
+}
+
+.analysis-mode .controls-pane .ticker-chip .chip-remove {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.analysis-mode .controls-pane .ticker-chip .chip-remove svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* 모달 팝인(열릴 때 부드럽게) */
+.modal-pop {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  transition: transform 220ms ease, opacity 220ms ease;
+  will-change: transform, opacity;
+}
+
+.modal-pop.enter {
+  transform: translate(-50%, -46%) scale(0.98);
+  opacity: 0;
+}
+
+.modal-pop.enter-active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  transition: transform 450ms ease, opacity 450ms ease;
+}
+
+/* 🔹 슬라이드 애니메이션 — 화면 밖으로 완전히 이동 */
+/* 뷰포트: 가로는 숨기고 세로 스크롤 허용 */
+.slide-viewport {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* 무대: 레이어 겹치기 */
+.slide-stage {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+/* 레이어 공통 */
+.slide-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: transform 0ms cubic-bezier(.22, .61, .36, 1), opacity 0ms ease;
+  will-change: transform, opacity;
+}
+
+/* 들어오는 레이어 */
+.slide-layer.incoming.at-center {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.slide-layer.incoming.from-right {
+  transform: translateX(100%);
+  opacity: 1;
+}
+
+.slide-layer.incoming.from-left {
+  transform: translateX(-100%);
+  opacity: 1;
+}
+
+.slide-layer.incoming.go {
+  transform: translateX(0);
+}
+
+/* 나가는 레이어 */
+.slide-layer.outgoing {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.slide-layer.outgoing.to-left {
+  transform: translateX(-100%);
+  opacity: .75;
+}
+
+.slide-layer.outgoing.to-right {
+  transform: translateX(100%);
+  opacity: .75;
+}
+
+/* ▽ 차트 카드(이미지 바로 바깥 박스) 통일 스타일 */
+/* 기본(라이트) */
+[data-chart-card] {
+  background-color: #f3f3fb !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 12px !important;
+  color: #0f172a;
+  /* 텍스트 기본색 */
+}
+
+/* 다크 오버라이드: html/body에 .dark, 혹은 data-theme="dark", .theme-dark, .dark-mode 모두 지원 */
+html.dark [data-chart-card],
+body.dark [data-chart-card],
+[data-theme="dark"] [data-chart-card],
+.theme-dark [data-chart-card],
+.dark-mode [data-chart-card] {
+  background-color: #192333 !important;
+  /* 다크 카드 배경 */
+  border: 1px solid #1f2937 !important;
+  /* 다크 테두리 */
+  color: #E5E7EB !important;
+  /* 다크 텍스트 */
+}
+
+[data-chart-card] .text-secondary {
+  color: #475569 !important;
+}
+
+/* light */
+html.dark [data-chart-card] .text-secondary,
+body.dark [data-chart-card] .text-secondary,
+[data-theme="dark"] [data-chart-card] .text-secondary,
+.theme-dark [data-chart-card] .text-secondary,
+.dark-mode [data-chart-card] .text-secondary {
+  color: #94A3B8 !important;
+}
+
+/* dark */
+
+/* ▼ 분석 사이드 폼 컨트롤 공통 스타일 (날짜/숫자/셀렉트/검색 인풋) */
+input[type="date"],
+input[type="number"],
+select,
+#ticker-search {
+  background-color: var(--form-bg) !important;
+  color: var(--form-text) !important;
+  border-color: var(--form-border) !important;
+}
+
+/* placeholder 톤 */
+#ticker-search::placeholder,
+input[type="number"]::placeholder {
+  color: var(--form-placeholder) !important;
+}
+
+/* 포커스 링은 유지하되 테두리만 투명 처리 */
+input[type="date"]:focus,
+input[type="number"]:focus,
+select:focus,
+#ticker-search:focus {
+  outline: none !important;
+  border-color: transparent !important;
+}
+
+/* 셀렉트/인풋 라운드 일관화(선택) */
+input[type="date"],
+input[type="number"],
+select,
+#ticker-search {
+  border-width: 1px !important;
+  border-radius: 12px !important;
+}
+
+/* ▼ Portfolio Summary Table 스킨 (data-pscope 영역에만 적용) */
+[data-pscope] table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--ps-bg);
+  color: var(--ps-text);
+}
+
+[data-pscope] thead th {
+  background-color: var(--ps-header-bg);
+  color: var(--ps-header-text);
+  border: 1px solid var(--ps-border);
+  padding: 8px 10px;
+  font-weight: 700;
+}
+
+[data-pscope] tbody td {
+  border: 1px solid var(--ps-border);
+  padding: 8px 10px;
+}
+
+[data-pscope] tbody tr:nth-child(even) {
+  background-color: var(--ps-row-even);
+}
+
+[data-pscope] tbody tr:nth-child(odd) {
+  background-color: var(--ps-row-odd);
+}
+
+/* 표 전체 테두리가 필요한 경우 */
+[data-pscope] table,
+[data-pscope] thead,
+[data-pscope] tbody {
+  border-color: var(--ps-border);
+}
+
+/* ▼ 표 헤더 그라데이션 */
+.table-header-gradient {
+  background-image: linear-gradient(to right,
+      var(--color-table-header-start),
+      var(--color-table-header-end)) !important;
+}
+
+.table-header-gradient th {
+  background: transparent !important;
+  color: var(--color-table-header-text) !important;
+}
+
+/* 기본 행(미세한 세로 그라데이션) */
+.bg-panel {
+  background-color: var(--color-table-row-bg-start) !important;
+  /* fallback */
+  background-image: linear-gradient(180deg,
+      var(--color-table-row-bg-start) 0%,
+      var(--color-table-row-bg-end) 100%) !important;
+}
+
+/* hover/짝수행 등 */
+.bg-panel-dark {
+  background-color: var(--color-table-row-hover-start) !important;
+  /* fallback */
+  background-image: linear-gradient(180deg,
+      var(--color-table-row-hover-start) 0%,
+      var(--color-table-row-hover-end) 100%) !important;
+}
+
+/* Tailwind hover 유틸 대응 */
+.hover\:bg-panel-dark:hover {
+  background-color: var(--color-table-row-hover-start) !important;
+  background-image: linear-gradient(180deg,
+      var(--color-table-row-hover-start) 0%,
+      var(--color-table-row-hover-end) 100%) !important;
+}
+
+:root {
+  --color-summary-gradient-start: #EAF0FF;
+  --color-summary-gradient-end: #EFE9FF;
+}
+
+/* 라이트 테마 클래스가 붙었을 때도 확실히 적용 */
+.theme-light {
+  --color-summary-gradient-start: #EAF0FF;
+  --color-summary-gradient-end: #EFE9FF;
+}
+
+.theme-dark {
+  --color-summary-gradient-start: #0F172A;
+  --color-summary-gradient-end: #1E293B;
+}
+
+/* Correlation matrix: scrollbars + sticky first column */
+.corr-scroll-container {
+  max-height: 600px;
+  overflow: auto;
+}
+
+.corr-scroll-container::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.corr-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, .5);
+  border-radius: 8px;
+}
+
+/* 첫 번째 열(행 라벨) 고정 */
+.corr-first-col {
+  position: sticky;
+  left: 0;
+  z-index: 30;
+  /* 데이터 셀 위로 */
+}
+
+/* ── Summary Button 색상(라이트/다크 공통 변수) ───────────────────── */
+/* 라이트(기본) 변수: :root와 html 모두에 부여 */
+:root,
+html {
+  --summary-bg: #ffffff;
+  --summary-fg: #334155;
+  /* slate-700 */
+  --summary-border: rgba(148, 163, 184, .8);
+  /* slate-400/80 */
+  --summary-hover-bg: #f8fafc;
+  /* slate-50 */
+}
+
+/* 다크 변수 오버라이드: 다양한 토글 패턴을 모두 커버 */
+html.dark,
+:root.dark,
+body.dark,
+[data-theme="dark"],
+.theme-dark {
+  --summary-bg: rgba(30, 41, 59, .90);
+  /* slate-800/90 */
+  --summary-fg: #e2e8f0;
+  /* slate-200 */
+  --summary-border: rgba(51, 65, 85, .70);
+  /* slate-700/70 */
+  --summary-hover-bg: rgba(51, 65, 85, .90);
+  /* slate-700/90 */
+}
+
+/* 전용 클래스: 다른 규칙보다 우선되도록 !important 부여 */
+button.summary-btn {
+  background: var(--summary-bg) !important;
+  color: var(--summary-fg) !important;
+  border: 1px solid var(--summary-border) !important;
+  transition: background-color .2s ease, box-shadow .18s ease;
+}
+
+button.summary-btn:hover {
+  background: var(--summary-hover-bg) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+}
+
+/* 하드 폴백: 혹시 변수 상속이 막히는 환경에서도 강제 적용 */
+html.dark button.summary-btn,
+[data-theme="dark"] button.summary-btn,
+.theme-dark button.summary-btn,
+body.dark button.summary-btn {
+  background: var(--summary-bg) !important;
+  color: var(--summary-fg) !important;
+  border: 1px solid var(--summary-border) !important;
+}
+
+/* ── 요약 패널 오버레이(라이트/다크 강제 테마) ───────────────────── */
+.summary-overlay {
+  background: var(--sov-bg) !important;
+  color: var(--sov-fg) !important;
+  border-color: var(--sov-border) !important;
+}
+
+/* 라이트 테마 */
+.summary-overlay.theme-light {
+  --sov-bg: #ffffff;
+  --sov-fg: #0f172a;
+  /* slate-900 */
+  --sov-border: rgba(203, 213, 225, .9);
+  /* slate-300/90 */
+  --sov-muted: #334155;
+  /* slate-700: 라이트에서 가독성 강화 */
+  --sov-rec-bg: linear-gradient(90deg, rgba(245, 244, 250, 1) 0%, rgba(245, 244, 250, 0.6) 60%, rgba(245, 244, 250, 0) 100%);
+}
+
+/* 다크 테마 */
+.summary-overlay.theme-dark {
+  --sov-bg: rgba(9, 15, 43, 0.95);
+  /* ~ slate-950/95 */
+  --sov-fg: #e2e8f0;
+  /* slate-200 */
+  --sov-border: rgba(51, 65, 85, .6);
+  /* slate-700/60 */
+  --sov-muted: #94a3b8;
+  /* slate-400 */
+  --sov-rec-bg: linear-gradient(90deg, rgba(71, 85, 105, .30) 0%, rgba(71, 85, 105, .18) 55%, rgba(71, 85, 105, 0) 100%);
+}
+
+/* 오버레이 내부 요소 */
+.summary-overlay .muted {
+  color: var(--sov-muted) !important;
+}
+
+.summary-overlay .close-btn:hover {
+  background: rgba(148, 163, 184, .28) !important;
+  /* 라이트 hover */
+}
+
+.summary-overlay.theme-dark .close-btn:hover {
+  background: rgba(255, 255, 255, .08) !important;
+  /* 다크 hover */
+}
+
+.summary-overlay .recommend-box {
+  background: var(--sov-rec-bg) !important;
+}
+
+/* 요약창 추천 박스 타이포 대비 보정 */
+.summary-overlay .recommend-box p:first-child {
+  color: var(--sov-fg) !important;
+  /* 제목 '투자 추천' */
+}
+
+.summary-overlay .recommend-box p:last-child {
+  color: var(--sov-muted) !important;
+  /* 본문 설명: 테마별 --sov-muted 사용 */
+}
+
+/* Summary overlay section titles (제목만 진하게) */
+.summary-overlay.theme-light .summary-title {
+  color: #0b1220 !important;
+  /* 거의 검정에 가까운 진한 톤 */
+}
+
+.summary-overlay.theme-dark .summary-title {
+  color: #e5e7eb !important;
+  /* 밝은 톤 */
+}
+
+/* ===== Summary Overlay: slide-down entrance (CSS-only) ===== */
+@keyframes sovSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scaleY(0.95);
+    transform-origin: top;
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+/* 요약창이 마운트될 때 아래로 펼쳐지는 느낌 */
+.summary-overlay {
+  animation: sovSlideDown 220ms cubic-bezier(.22, .61, .36, 1) both;
+  will-change: transform, opacity;
+  overflow: hidden;
+  /* 가장자리 깔끔하게 */
+}
+
+/* OS에서 모션 축소 설정 시 비활성화 */
+@media (prefers-reduced-motion: reduce) {
+  .summary-overlay {
+    animation: none;
+  }
+}
+
+/* ── 프리셋 버튼 (컨트롤 패널의 '전체 시장' 오른쪽 영역에 임시 배치) ── */
+.controls-pane {
+  position: relative;
+}
+
+/* 버튼 고정을 위해 부모를 기준으로 */
+/* 프리셋 버튼: '전체 시장' 셀렉트와 동일 톤/사이즈 */
+.preset-launcher {
+  position: relative;
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 프리셋 버튼을 폼 컨트롤(셀렉트)과 완전히 동일 톤/두께/곡률로 */
+.preset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 16px;
+  /* 셀렉트와 동일 패딩 */
+  border-radius: 12px !important;
+  /* 셀렉트 공통 라운드와 동일 */
+  border: 1px solid var(--form-border) !important;
+  /* 셀렉트 테두리 두께/색상 */
+  background: var(--form-bg) !important;
+  /* 셀렉트 배경 */
+  color: var(--form-text) !important;
+  /* 셀렉트 텍스트 */
+  line-height: 1;
+  font-size: 16px;
+  transition: background-color .2s ease, box-shadow .15s ease, filter .15s ease;
+}
+
+.preset-btn:hover {
+  filter: brightness(1.02);
+}
+
+.preset-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, .55);
+  /* focus:ring-blue-500 */
+  border-color: transparent;
+}
+
+
+/* 프리셋 오버레이는 summary-overlay와 동일 톤을 재사용 */
+.preset-overlay {
+  color: var(--sov-fg);
+}
+
+/* '시장 선택 + 검색' 행은 항상 가로 배치 고정 */
+.af-market-search {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap !important;
+  /* 줄바꿈 방지 */
+}
+
+/* 왼쪽(셀렉트/프리셋)은 고정 폭, 오른쪽 검색은 가변 폭 */
+.af-market-search .preset-launcher {
+  flex: none;
+}
+
+.af-market-search select {
+  flex: none;
+}
+
+.af-market-search .flex-1 {
+  min-width: 0;
+}
+
+/* 검색 인풋 영역이 줄 때 넘침 방지 */
+
+
+/* ===== 시장선택(select) 디자인: 얇은 1px 테두리로 통일 ===== */
+.controls-pane .af-market-search select {
+  /* 폼 컨트롤 공통 변수로 통일 → 라이트/다크 자동 적용 */
+  background: var(--form-bg) !important;
+  border: 1px solid var(--form-border) !important;
+  color: var(--form-text) !important;
+
+  border-radius: 12px !important;
+  /* 다른 인풋과 동일 곡률 */
+  padding: 12px 16px !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+}
+
+.controls-pane .af-market-search select:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.55) !important;
+  border-color: transparent !important;
+}
+
+.controls-pane .af-market-search .preset-btn {
+  /* 폼 컨트롤 공통 변수로 통일 → 라이트/다크 자동 적용 */
+  background: var(--form-bg) !important;
+  border: 1px solid var(--form-border) !important;
+  color: var(--form-text) !important;
+
+  border-radius: 12px !important;
+  height: 49px !important;
+  font-size: 16px !important;
+  padding: 0 16px !important;
+
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: none !important;
+}
+
+.controls-pane .af-market-search .preset-btn:hover {
+  filter: brightness(1.02);
+}
+
+.controls-pane .af-market-search .preset-btn:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.55) !important;
+  border-color: transparent !important;
+}
+
+
+.controls-pane .af-market-search select:hover {
+  filter: brightness(1.02);
+}
+
+/* ── 프리셋 오버레이: 테마 독립 변수 (오버레이 자체 클래스 기준) ───────── */
+.preset-overlay {
+  background: var(--sov-bg) !important;
+  color: var(--sov-fg) !important;
+  border: 1px solid var(--sov-border) !important;
+  backdrop-filter: none !important;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+}
+
+/* 오버레이 자신에게 theme-light / theme-dark 를 직접 부여해 색을 고정 */
+.preset-overlay.theme-light {
+  --sov-bg: #ffffff;
+  --sov-fg: #0f172a;
+  /* slate-900 */
+  --sov-border: rgba(203, 213, 225, .9);
+  /* slate-300/90 */
+  --summary-hover-bg: rgba(15, 23, 42, .06);
+}
+
+.preset-overlay.theme-dark {
+  --sov-bg: #0b1229;
+  /* 불투명 딥 다크 */
+  --sov-fg: #e2e8f0;
+  /* slate-200 */
+  --sov-border: rgba(51, 65, 85, .70);
+  /* slate-700/70 */
+  --summary-hover-bg: rgba(148, 163, 184, .12);
+}

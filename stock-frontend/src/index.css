@@ -1,0 +1,440 @@
+@import 'tailwindcss';
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* 스크롤 애니메이션 커스텀 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* 스크롤바 숨기기 */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* 전역 CSS 변수 정의 */
+:root {
+  /* 배경 색상 변수 */
+  --color-bg-start: #1f2937;
+  --color-bg-middle: #1e293b;
+  --color-bg-end: #000000;
+  --color-bg-panel: rgba(45, 53, 67, 0.5);
+  --color-bg-panel-dark: rgba(30, 41, 59, 0.5);
+  --color-bg-border: rgba(71, 85, 105, 0.5);
+
+  /* 텍스트 색상 변수 */
+  --color-text-primary: #e5e7eb;
+  --color-text-secondary: #9ca3af;
+  --color-text-accent: #6366f1;
+  --color-text-success: #4ade80;
+  --color-text-error: #ef4444;
+  --color-text-info: #60a5fa;
+  --color-text-warning: #fbbf24;
+  --color-text-purple: #c084fc;
+
+  /* 기타 요소 색상 변수 (예: 진행바, 버튼, 테이블, 상관관계) */
+  --color-progress-bar-bg: rgba(71, 85, 105, 0.5);
+  --color-progress-bar-fill: #3b82f6;
+  --color-tab-inactive-bg: rgba(71, 85, 105, 0.5);
+  --color-tab-inactive-hover-bg: #475569;
+  --color-tab-active-gradient-start: #2563eb;
+  --color-tab-active-gradient-end: #9333ea;
+
+  /* 차트 버튼 비활성화 배경 */
+  --color-chart-btn-disabled-bg: #4b5563; /* gray-600 */
+
+  /* 테이블 헤더 그라데이션 */
+  --color-table-header-start: #334155; /* slate-800 */
+  --color-table-header-end: #0f172a;   /* slate-900 */
+
+  /* 상관관계 매트릭스 색상 */
+  --color-corr-strong-pos: rgba(34, 197, 94, 0.8);
+  --color-corr-weak-pos: rgba(34, 197, 94, 0.4);
+  --color-corr-none: #475569;
+  --color-corr-weak-neg: rgba(239, 68, 68, 0.4);
+  --color-corr-strong-neg: rgba(239, 68, 68, 0.8);
+
+  /* SummaryTab 하단 그라데이션 */
+  --color-summary-gradient-start: rgba(37, 99, 235, 0.2);
+  --color-summary-gradient-end: rgba(147, 51, 234, 0.2);
+
+  /* 일반적인 그라데이션 변수들 */
+  --gradient-blue-start: #2563eb;  /* blue-600 */
+  --gradient-blue-end: #1d4ed8;    /* blue-700 */
+
+  --gradient-purple-start: #9333ea; /* purple-600 */
+  --gradient-purple-end: #7e22ce;   /* purple-700 */
+
+  --gradient-green-start: #16a34a;  /* green-600 */
+  --gradient-green-end: #15803d;    /* green-700 */
+
+  --gradient-pink-start: #e11d48;   /* pink-600 */
+  --gradient-pink-end: #be185d;     /* pink-700 */
+
+  --gradient-blue-start: #2563eb;   /* blue-600 */
+  --gradient-blue-end:   #1d4ed8;   /* blue-700 */
+
+  --gradient-purple-start: #9333ea; /* purple-600 */
+  --gradient-purple-end:   #7e22ce; /* purple-700 */
+
+  --gradient-pink-start: #e11d48;   /* pink-600 */
+  --gradient-pink-end:   #be185d;   /* pink-700 */
+}
+
+/* 애플리케이션의 전체 배경 클래스 */
+.app-background {
+  min-height: 100vh;
+  background-image: linear-gradient(to bottom right, var(--color-bg-start), var(--color-bg-middle), var(--color-bg-end));
+  transition: background-image 0.5s ease-in-out;
+}
+
+/* 모든 텍스트의 기본 색상 설정 */
+body {
+  color: var(--color-text-primary);
+}
+
+/* 커스텀 유틸리티 클래스 정의 */
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-accent { color: var(--color-text-accent); }
+.text-success { color: var(--color-text-success); }
+.text-error { color: var(--color-text-error); }
+.text-info { color: var(--color-text-info); }
+.text-warning { color: var(--color-text-warning); }
+.text-purple-themed { color: var(--color-text-purple); }
+
+.bg-panel { background-color: var(--color-bg-panel); }
+.bg-panel-dark { background-color: var(--color-bg-panel-dark); }
+.border-panel { border-color: var(--color-bg-border); }
+
+.progress-bar-bg { background-color: var(--color-progress-bar-bg); }
+.progress-bar-fill { background-color: var(--color-progress-bar-fill); }
+
+.table-header-gradient {
+  background-image: linear-gradient(to right, var(--color-table-header-start), var(--color-table-header-end));
+}
+
+/* 애니메이션 효과 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 그라데이션 텍스트 효과 */
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text-transparent {
+  color: transparent;
+}
+
+.theme-light {
+  --color-bg-start: #f9fafb;
+  --color-bg-middle: #f3f4f6;
+  --color-bg-end: #e5e7eb;
+  --color-bg-panel: rgba(255, 255, 255, 0.9);
+  --color-bg-panel-dark: rgba(249, 250, 251, 0.9);
+  --color-bg-border: rgba(229, 231, 235, 0.8);
+
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-accent: #3b82f6;
+  --color-text-success: #10b981;
+  --color-text-error: #6b7280;  /* 빨간색 대신 회색 사용 */
+  --color-text-info: #3b82f6;
+  --color-text-warning: #f59e0b;
+  --color-text-purple: #8b5cf6;
+
+  --color-progress-bar-bg: rgba(229, 231, 235, 0.5);
+  --color-progress-bar-fill: #3b82f6;
+  --color-tab-inactive-bg: rgba(243, 244, 246, 0.9);
+  --color-tab-inactive-hover-bg: #e5e7eb;
+  --color-tab-active-gradient-start: #3b82f6;
+  --color-tab-active-gradient-end: #8b5cf6;
+
+  --color-chart-btn-disabled-bg: #e5e7eb;
+
+  --color-table-header-start: #e5e7eb;
+  --color-table-header-end: #d1d5db;
+
+  --color-corr-strong-pos: rgba(16, 185, 129, 0.8);
+  --color-corr-weak-pos: rgba(16, 185, 129, 0.4);
+  --color-corr-none: #e5e7eb;
+  --color-corr-weak-neg: rgba(239, 68, 68, 0.4);
+  --color-corr-strong-neg: rgba(239, 68, 68, 0.8);
+
+  --color-summary-gradient-start: rgba(59, 130, 246, 0.1);
+  --color-summary-gradient-end: rgba(139, 92, 246, 0.1);
+
+  --gradient-blue-start: #3b82f6;
+  --gradient-blue-end: #2563eb;
+
+  --gradient-purple-start: #8b5cf6;
+  --gradient-purple-end: #7c3aed;
+
+  --gradient-green-start: #10b981;
+  --gradient-green-end: #059669;
+
+  --gradient-pink-start: #ec4899;
+  --gradient-pink-end: #db2777;
+
+  /* 진행 상태 인디케이터용 색상 추가 */
+  --color-step-active: #3b82f6;
+  --color-step-completed: #10b981;
+  --color-step-inactive: #e5e7eb;
+  --color-step-text-inactive: #9ca3af;
+}
+
+/* ▼ 테마 변수 — 파일 맨 아래에 위치 */
+
+/* 라이트(기본) + 라이트 클래스들까지 명시 */
+:root,
+html.light,
+body.light,
+[data-theme="light"],
+.theme-light,
+.light {
+  --color-tab-inactive-bg: #e4e4f5;
+  --color-tab-inactive-hover-bg: #d4d4f0;
+  --color-tab-inactive-text: #636972;
+
+  --color-tab-active-gradient-start: #3b82f6;
+  --color-tab-active-gradient-end:   #8b5cf6;
+  --color-tab-active-text: #1f2937;
+
+  --color-text-primary: #111827;
+}
+
+/* 다크 */
+html.dark,
+body.dark,
+[data-theme="dark"],
+.theme-dark,
+.dark-mode {
+  --color-tab-inactive-bg: #313b58;
+  --color-tab-inactive-hover-bg: #4e5f91;
+  --color-tab-inactive-text: #94a3b8;
+
+  --color-tab-active-gradient-start: #2563eb;
+  --color-tab-active-gradient-end:   #9333ea;
+  --color-tab-active-text: #ffffff;
+
+  --color-text-primary: #e5e7eb;
+}
+
+/* ▼ Segmented 토글 색상 변수 */
+
+/* 라이트(기본) + 라이트 클래스를 쓰는 경우까지 명시 */
+:root,
+html.light,
+body.light,
+[data-theme="light"],
+.theme-light,
+.light {
+  --seg-bg:            #e4e4f5;                 /* 토글 박스 배경 (gray-200) */
+  --seg-border:        #94a3b8;                 /* 테두리 (slate-400) */
+  --seg-text:          #111827;                 /* 박스 내부 기본 텍스트 */
+  --seg-inactive-text: #494949;                 /* 비활성 버튼 글자 (gray-500) */
+  --seg-hover-text:    #b6b6b6;                 /* 비활성 hover 글자 */
+  --seg-active-bg:     #903be4;                 /* 활성 버튼 배경 (blue-600) */
+  --seg-active-text:   #ffffff;                 /* 활성 버튼 글자 */
+}
+
+/* 다크 */
+html.dark,
+body.dark,
+[data-theme="dark"],
+.theme-dark,
+.dark-mode {
+  --seg-bg:            rgba(30,41,59,0.55);     /* slate-800/55% */
+  --seg-border:        #334155;                 /* slate-700 */
+  --seg-text:          #e5e7eb;                 /* 기본 텍스트 */
+  --seg-inactive-text: #94a3b8;                 /* 비활성 글자 (slate-400) */
+  --seg-hover-text:    #e5e7eb;                 /* 비활성 hover 글자 */
+  --seg-active-bg:     #143479;                 /* 활성 배경 */
+  --seg-active-text:   #ffffff;                 /* 활성 글자 */
+}
+
+/* ▼ 폼 컨트롤 색상 변수: 라이트(기본) */
+:root,
+html.light,
+body.light,
+[data-theme="light"],
+.theme-light,
+.light {
+  --form-bg:           #e4e4f5;  /* 박스 배경 (gray-200) */
+  --form-border:       #94a3b8;  /* 테두리 (slate-400) */
+  --form-text:         #0f172a;  /* 글자색 (slate-900) */
+  --form-placeholder:  #6b7280;  /* 플레이스홀더 (gray-500) */
+}
+
+/* ▼ 다크 모드 오버라이드 */
+html.dark,
+body.dark,
+[data-theme="dark"],
+.theme-dark,
+.dark-mode {
+  --form-bg:           #313b58; /* slate-800/55% */
+  --form-border:       #4e5f91;            /* slate-700 */
+  --form-text:         #e5e7eb;            /* slate-200 */
+  --form-placeholder:  #94a3b8;            /* slate-400 */
+}
+
+/* ▼ Portfolio Summary Table 색상 변수 */
+
+/* 라이트(기본) */
+:root,
+html.light, body.light, [data-theme="light"], .theme-light, .light {
+  --ps-bg:            #ffffff;
+  --ps-text:          #0f172a;  /* slate-900 */
+  --ps-border:        #cbd5e1;  /* slate-300 */
+
+  --ps-header-bg:     #10b981;  /* emerald-500 (너무 튀면 #22c55e) */
+  --ps-header-text:   #ffffff;
+
+  --ps-row-even:      #f8fafc;  /* slate-50 */
+  --ps-row-odd:       #f1f5f9;  /* slate-100 */
+}
+
+/* 다크 */
+html.dark, body.dark, [data-theme="dark"], .theme-dark, .dark-mode {
+  --ps-bg:            #0f172a;
+  --ps-text:          #e5e7eb;  /* slate-200 */
+  --ps-border:        #334155;  /* slate-700 */
+
+  --ps-header-bg:     #14532d;  /* emerald-900 */
+  --ps-header-text:   #e5e7eb;
+
+  --ps-row-even:      #0f172a;
+  --ps-row-odd:       #111827;
+}
+
+/* ▼ SINGLE 모드 패널 선택 '알약' 버튼 색상 변수 */
+
+/* 라이트(기본) + 라이트 클래스들 */
+:root,
+html.light, body.light, [data-theme="light"], .theme-light, .light {
+  --pill-bg:             #dcdbff;     /* 비활성 배경 */
+  --pill-text:           #0f0f2a;     /* 비활성 글자 */
+  --pill-border:         #94a3b8;     /* 비활성 테두리(slate-400) */
+  --pill-hover-bg:       #b4b0f5;     /* hover 배경(gray-200) */
+  --pill-hover-text:     #0f172a;     /* hover 글자 */
+
+  --pill-active-bg:      #6058d1;     /* 활성 배경(slate-800) */
+  --pill-active-text:    #ffffff;     /* 활성 글자 */
+  --pill-active-border:  #1f2937;     /* 활성 테두리 */
+}
+
+/* 다크 */
+html.dark, body.dark, [data-theme="dark"], .theme-dark, .dark-mode {
+  --pill-bg:             #232947;                /* 비활성 배경 */
+  --pill-text:           #94a3b8;                    /* 비활성 글자(slate-400) */
+  --pill-border:         #334155;                    /* 비활성 테두리(slate-700) */
+  --pill-hover-bg:       #252c4e;        /* hover 배경(slate-700/35%) */
+  --pill-hover-text:     #e5e7eb;                    /* hover 글자 */
+
+  --pill-active-bg:      #1f2e63;                    /* 활성 배경(slate-800) */
+  --pill-active-text:    #e5e7eb;                    /* 활성 글자 */
+  --pill-active-border:  #475569;                    /* 활성 테두리(slate-600) */
+}
+
+/* ▼ 표 공통 색상 변수 */
+
+/* 라이트(기본) + 라이트 클래스들 */
+:root,
+html.light, body.light, [data-theme="light"], .theme-light, .light {
+  /* 기존 단색(호환용) */
+  --color-table-row-bg:      #ffffff;
+  --color-table-row-hover:   #f8fafc;
+
+  /* ▼ 라이트: 그라데이션 시작/끝 */
+  --color-table-row-bg-start:    #ffffff;
+  --color-table-row-bg-end:      #f9f7ff;
+  --color-table-row-hover-start: #f8fafc;
+  --color-table-row-hover-end:   #f8fafc; /* 살짝만 더 밝게 */
+
+  --color-table-border:      #e5e7eb;
+  --color-table-header-start:#6984dd;
+  --color-table-header-end:  #a17ee2;
+  --color-table-header-text: #0f172a;
+
+  /* 상관계수 셀 색상 */
+  --color-corr-strong-pos: #22c55e;  /* 강한 양의 */
+  --color-corr-weak-pos:   #86efac;  /* 약한 양의 */
+  --color-corr-none:       #ffffff;  /* 없음 */
+  --color-corr-weak-neg:   #fca5a5;  /* 약한 음의 */
+  --color-corr-strong-neg: #f87171;  /* 강한 음의 */
+}
+
+/* 다크 */
+html.dark, body.dark, [data-theme="dark"], .theme-dark, .dark-mode {
+  /* 기존 단색(호환용) */
+  --color-table-row-bg:      #1b222e;
+  --color-table-row-hover:   #1e293a;
+
+  /* ▼ 다크: 그라데이션 시작/끝 (위가 약간 밝고 아래가 짙게) */
+  --color-table-row-bg-start:    #303853; /* ↑ 밝게 */
+  --color-table-row-bg-end:      #293249; /* ↓ 짙게 */
+  --color-table-row-hover-start: #233146;
+  --color-table-row-hover-end:   #202c3f;
+
+  --color-table-border:      #334155;
+  --color-table-header-start:#121c31;
+  --color-table-header-end:  #17233f;
+  --color-table-header-text: #e5e7eb;
+
+  /* 상관계수 셀 색상 */
+  --color-corr-strong-pos: #16a34a;
+  --color-corr-weak-pos:   #22c55e;
+  --color-corr-none:       #283850;
+  --color-corr-weak-neg:   #ef9a9a;
+  --color-corr-strong-neg: #ef4444;
+}
+
+
+/* ---- Modal theming override (라이트 강제) ---- */
+.allcharts-modal-panel.theme-light,
+.allcharts-modal-panel.light {
+  background-color: rgba(255,255,255,0.98) !important;
+  color: #0f172a !important;
+  border-color: rgba(226,232,240,0.7) !important;
+}
+.allcharts-modal-panel.theme-dark,
+.allcharts-modal-panel.dark {
+  background-color: var(--color-bg-panel-dark, #0b1220) !important;
+  color: #e5e7eb !important;
+  border-color: var(--color-bg-border, rgba(71,85,105)) !important;
+}
+
+/* 요약 패널도 동일 기준 */
+.summary-overlay.theme-light,
+.summary-overlay.light {
+  background-color: rgba(255,255,255,0.95) !important;
+  color:#0f172a !important;
+  border-color: rgba(226,232,240,0.7) !important;
+}
+.summary-overlay.theme-dark,
+.summary-overlay.dark {
+  background-color: rgba(2,6,23) !important;
+  color:#e5e7eb !important;
+  border-color: rgba(71,85,105) !important;
+}
