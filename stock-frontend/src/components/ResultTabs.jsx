@@ -29,7 +29,6 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
   };
 
   const pollResult = async (currentTaskId) => {
-    // 이전 요청 정리 후 새 요청
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
 
@@ -38,11 +37,20 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
         signal: abortRef.current.signal,
       });
 
-      // 백엔드에서 받은 진행 메시지를 상태에 저장
-      if (data.status !== 'completed' && data.message) {
-        setLoadingMessage(data.message);
+      // ✅ 1. 응답이 OK가 아닐 경우를 먼저 처리합니다.
+      if (!res.ok) {
+        // 404는 명확한 에러 메시지를 보여줍니다.
+        if (res.status === 404) {
+          throw new Error('분석 세션을 찾을 수 없습니다. 다시 시도해 주세요.');
+        }
+        throw new Error(`서버 오류가 발생했습니다. (HTTP ${res.status})`);
       }
 
+      // ✅ 2. 응답 본문을 JSON으로 파싱합니다.
+      const data = await res.json();
+      setError(null); // 이전 에러 상태를 초기화합니다.
+
+      // ✅ 3. 백엔드 상태에 따라 UI를 업데이트합니다.
       if (data.status === 'completed') {
         stopPolling();
         setResult(data);
@@ -52,14 +60,19 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
         }
         setLoading(false);
       } else {
+        // 'running' 또는 'pending' 상태일 때
         setLoading(true);
-        scheduleNext(currentTaskId);
+        // 백엔드에서 받은 진행 메시지가 있으면 업데이트합니다.
+        if (data.message) {
+          setLoadingMessage(data.message);
+        }
+        scheduleNext(currentTaskId); // 다음 폴링을 예약합니다.
       }
     } catch (e) {
-      if (e.name === 'AbortError') return; // 정상 정리
+      if (e.name === 'AbortError') return; // Abort는 정상적인 종료이므로 무시
       stopPolling();
       setLoading(false);
-      setError('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      setError(e.message || '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   };
 
