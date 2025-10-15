@@ -1,4 +1,4 @@
-// components/tabs/SummaryTab.jsx
+// ahnsangha/portfolio-2-frontend/portfolio-2-frontend-217b54b6ff2088b6ce16c4a81a977a19a83b4f79/stock-frontend/src/components/tabs/SummaryTab.jsx
 
 import { BarChart2, Calendar, AlertTriangle } from 'lucide-react';
 
@@ -21,48 +21,47 @@ export default function SummaryTab({ data }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* 카드 1: 분석 기간 */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl shadow-lg transition-all hover:border-slate-600">
-          <div className="p-5 border-b border-slate-700">
-            <h3 className="text-lg font-semibold flex items-center">
-              <Calendar className="w-5 h-5 mr-3 text-blue-400" />
+        <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg transition-all hover:border-slate-300 dark:hover:border-slate-600">
+          <div className="p-5 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-semibold flex items-center text-slate-800 dark:text-slate-100">
+              <Calendar className="w-5 h-5 mr-3 text-blue-500 dark:text-blue-400" />
               분석 기간
             </h3>
           </div>
-          <div className="p-5 space-y-3 text-sm">
+          <div className="p-5 space-y-3 text-sm text-slate-700 dark:text-slate-50">
             <div className="flex justify-between items-center">
-              <span className="text-slate-400">시작일:</span>
+              <span className="text-slate-500 dark:text-slate-400">시작일:</span>
               <span className="font-mono">{period?.start}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-400">종료일:</span>
+              <span className="text-slate-500 dark:text-slate-400">종료일:</span>
               <span className="font-mono">{period?.end}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-400">총 거래일:</span>
+              <span className="text-slate-500 dark:text-slate-400">총 거래일:</span>
               <span>{period?.trading_days}일</span>
             </div>
-            <div className="flex justify-between items-center pt-3 border-t border-slate-700/50">
-              <span className="text-slate-300 font-semibold">분석된 종목 수:</span>
-              <span className="font-bold text-lg text-blue-400">{stocks_analyzed}개</span>
+            <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-700/50">
+              <span className="text-slate-600 dark:text-slate-300 font-semibold">분석된 종목 수:</span>
+              <span className="font-bold text-lg text-blue-600 dark:text-blue-400">{stocks_analyzed}개</span>
             </div>
           </div>
         </div>
 
         {/* 카드 2: 상관관계 통계 */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl shadow-lg transition-all hover:border-slate-600">
-          <div className="p-5 border-b border-slate-700">
-            <h3 className="text-lg font-semibold flex items-center">
-              <BarChart2 className="w-5 h-5 mr-3 text-purple-400" />
+        <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg transition-all hover:border-slate-300 dark:hover:border-slate-600">
+          <div className="p-5 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-semibold flex items-center text-slate-800 dark:text-slate-100">
+              <BarChart2 className="w-5 h-5 mr-3 text-purple-500 dark:text-purple-400" />
               상관관계 통계
             </h3>
           </div>
           <div className="p-3 text-sm">
-            {/* 각 통계 항목을 리스트 형태로 변경 */}
             <ul className="space-y-1">
               {stats.map(stat => (
-                <li key={stat.label} className="flex justify-between items-center px-2 py-2 rounded-md hover:bg-slate-700/50 transition-colors">
-                  <span className="text-slate-400">{stat.label}:</span>
-                  <span className="font-mono font-semibold">{stat.value}</span>
+                <li key={stat.label} className="flex justify-between items-center px-2 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
+                  <span className="text-slate-500 dark:text-slate-400">{stat.label}:</span>
+                  <span className="font-mono font-semibold text-slate-800 dark:text-slate-50">{stat.value}</span>
                 </li>
               ))}
             </ul>
