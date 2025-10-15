@@ -1,5 +1,6 @@
-// components/ResultTabs.jsx
-import { useEffect, useState, useRef } from 'react';
+// ahnsangha/portfolio-2-frontend/portfolio-2-frontend-217b54b6ff2088b6ce16c4a81a977a19a83b4f79/stock-frontend/src/components/ResultTabs.jsx
+
+import { useEffect, useState } from 'react';
 import { BarChart2, BarChart3, TrendingUp, Layers, AlertTriangle } from 'lucide-react';
 import SummaryTab from './tabs/SummaryTab';
 import ChartTab from './tabs/ChartTab';
@@ -11,127 +12,71 @@ import '../styles/analysis-mode.css';
 export default function ResultTabs({ taskId, onAnalysisComplete }) {
   const [activeTab, setActiveTab] = useState('summary');
   const [result, setResult] = useState(null);
-  const setLoading = useState(true);
-  const setLoadingMessage = useState('분석 결과를 기다리는 중입니다...'); // 진행 메시지 상태 추가
-  const [error, setError] = useState(null);
   const [status, setStatus] = useState(null);
+  const [error, setError] = useState(null);
 
-  const timerRef = useRef(null);
-  const abortRef = useRef(null);
-  const hasCompletedRef = useRef(false);
-
-  const stopPolling = () => {
-    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
-    if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
-  };
-
-  const scheduleNext = (currentTaskId, delay = 1200) => {
-    timerRef.current = setTimeout(() => pollResult(currentTaskId), delay);
-  };
-
-  const pollResult = async (currentTaskId) => {
-    if (abortRef.current) abortRef.current.abort();
-    abortRef.current = new AbortController();
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/analysis/result/${currentTaskId}`, {
-        signal: abortRef.current.signal,
-      });
-
-      // ✅ 1. 응답이 OK가 아닐 경우를 먼저 처리합니다.
-      if (!res.ok) {
-        // 404는 명확한 에러 메시지를 보여줍니다.
-        if (res.status === 404) {
-          throw new Error('분석 세션을 찾을 수 없습니다. 다시 시도해 주세요.');
-        }
-        throw new Error(`서버 오류가 발생했습니다. (HTTP ${res.status})`);
-      }
-
-      // ✅ 2. 응답 본문을 JSON으로 파싱합니다.
-      const data = await res.json();
-      setError(null); // 이전 에러 상태를 초기화합니다.
-
-      // ✅ 3. 백엔드 상태에 따라 UI를 업데이트합니다.
-      if (data.status === 'completed') {
-        stopPolling();
-        setResult(data);
-        if (!hasCompletedRef.current) {
-          onAnalysisComplete?.();
-          hasCompletedRef.current = true;
-        }
-        setLoading(false);
-      } else {
-        // 'running' 또는 'pending' 상태일 때
-        setLoading(true);
-        // 백엔드에서 받은 진행 메시지가 있으면 업데이트합니다.
-        if (data.message) {
-          setLoadingMessage(data.message);
-        }
-        scheduleNext(currentTaskId); // 다음 폴링을 예약합니다.
-      }
-    } catch (e) {
-      if (e.name === 'AbortError') return; // Abort는 정상적인 종료이므로 무시
-      stopPolling();
-      setLoading(false);
-      setError(e.message || '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-    }
-  };
-
-  // taskId 변경 시 폴링 시작/정리
+  // ✅ 1. 상태 폴링과 결과 페칭 로직을 하나의 useEffect로 통합합니다.
   useEffect(() => {
-    stopPolling();
+    // taskId가 없으면 아무 작업도 하지 않습니다.
+    if (!taskId) return;
+
+    // 컴포넌트가 마운트될 때 상태를 초기화합니다.
     setResult(null);
+    setStatus(null);
     setError(null);
-    hasCompletedRef.current = false;
 
-    if (!taskId) return;
-
-    setLoading(true);
-    pollResult(taskId);
-
-    return () => {
-      stopPolling();
-      hasCompletedRef.current = false;
-    };
-  }, [taskId]);
-
-  useEffect(() => {
-    if (!taskId) return;
-
+    // ✅ 2. '/analysis/status'를 주기적으로 호출하는 인터벌을 설정합니다.
     const intervalId = setInterval(async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/analysis/status/${taskId}`);
-        if (!response.ok) throw new Error('상태 확인 실패');
+        if (!response.ok) {
+          throw new Error(`서버 상태 확인 실패 (HTTP ${response.status})`);
+        }
         
         const data = await response.json();
-        setStatus(data); // 상태 정보 업데이트
+        setStatus(data); // 실시간 상태 업데이트
 
-        if (data.status === 'completed' || data.status === 'failed') {
+        // ✅ 3. 분석이 완료되면 인터벌을 멈추고 최종 결과를 가져옵니다.
+        if (data.status === 'completed') {
           clearInterval(intervalId);
-          if (data.status === 'completed') onAnalysisComplete();
-          if (data.status === 'failed') setError(data.message);
+          
+          const resultResponse = await fetch(`${API_BASE_URL}/analysis/result/${taskId}`);
+          if (!resultResponse.ok) {
+            throw new Error(`최종 결과 로딩 실패 (HTTP ${resultResponse.status})`);
+          }
+          const resultData = await resultResponse.json();
+          setResult(resultData);
+          onAnalysisComplete?.(); // 상위 컴포넌트에 완료 알림
         }
+
+        // 분석이 실패하면 인터벌을 멈추고 에러 상태를 설정합니다.
+        if (data.status === 'failed') {
+          clearInterval(intervalId);
+          setError(data.message || '알 수 없는 오류로 분석에 실패했습니다.');
+        }
+
       } catch (err) {
         setError(err.message);
         clearInterval(intervalId);
       }
-    }, 2000); // 2초마다 상태 확인
+    }, 1500); // 1.5초마다 상태 확인
 
+    // 컴포넌트가 언마운트될 때 인터벌을 정리합니다.
     return () => clearInterval(intervalId);
   }, [taskId, onAnalysisComplete]);
 
-  // 로딩 중일 때 표시할 UI
-  if (!status || (status.status !== 'completed' && status.status !== 'failed')) {
+
+  // ✅ 4. 로딩 UI: result가 아직 없고, 에러도 없을 때 표시됩니다.
+  if (!result && !error) {
     const progress = status ? Math.round(status.progress * 100) : 0;
     
     return (
-      <div className="text-center p-8">
+      <div className="text-center p-8 bg-panel bg-panel-dark backdrop-blur-xl rounded-2xl shadow-2xl border border-panel">
         <h3 className="text-xl font-bold mb-2">{status?.message || '분석 준비 중...'}</h3>
-        {/* 현재 처리 중인 종목 이름 표시 */}
         {status?.current_stock && (
           <p className="text-lg text-gray-400 mb-4">{status.current_stock}</p>
         )}
-        <div className="w-full bg-gray-700 rounded-full h-4">
+        <div className="w-full bg-slate-700 rounded-full h-4 overflow-hidden">
           <div 
             className="bg-blue-500 h-4 rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
@@ -142,32 +87,25 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
     );
   }
 
-  // 에러 우선 표시 (이전에 spinner로 가려지던 문제 해결)
+  // ✅ 5. 에러 UI: 에러가 발생했을 때 최우선으로 표시됩니다.
   if (error) {
     return (
-      <div className="bg-panel bg-panel-dark backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-panel mb-8 text-primary">
+      <div className="bg-panel bg-panel-dark backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-panel text-primary">
         <div className="flex items-center gap-3 text-red-400 mb-4">
           <AlertTriangle className="w-6 h-6" />
           <span className="font-semibold">{error}</span>
         </div>
         <button
-          onClick={() => {
-            // 재시작 유도: 상위에서 taskId를 새로 받도록 보통 '분석 시작' 버튼을 누르게 함
-            setError(null);
-            if (taskId) {
-              stopPolling();
-              setLoading(true);
-              pollResult(taskId);
-            }
-          }}
+          onClick={() => window.location.reload()} // 간단하게 페이지 새로고침으로 재시도
           className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-primary"
         >
-          다시 시도
+          새로고침
         </button>
       </div>
     );
   }
 
+  // ✅ 6. 결과 UI: result가 성공적으로 로드되었을 때 표시됩니다.
   const tabs = [
     { id: 'summary', label: '요약', icon: BarChart2 },
     { id: 'charts', label: '차트', icon: BarChart3 },
@@ -196,30 +134,12 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
         ))}
       </div>
 
-      <div className="">
-        {activeTab === 'summary' && result.basic_stats && (
-          <div>
-            <SummaryTab data={result.basic_stats} />
-          </div>
-        )}
-        {activeTab === 'charts' && (
-          <div>
-            <ChartTab taskId={taskId} />
-          </div>
-        )}
-        {activeTab === 'performance' && result.performance_summary && (
-          <div>
-            <PerformanceTab data={result.performance_summary} />
-          </div>
-        )}
-        {activeTab === 'correlation' && result.correlation_matrix && (
-          <div>
-            <CorrelationTab data={result.correlation_matrix} />
-          </div>
-        )}
+      <div>
+        {activeTab === 'summary' && result?.basic_stats && <SummaryTab data={result.basic_stats} />}
+        {activeTab === 'charts' && <ChartTab taskId={taskId} />}
+        {activeTab === 'performance' && result?.performance_summary && <PerformanceTab data={result.performance_summary} />}
+        {activeTab === 'correlation' && result?.correlation_matrix && <CorrelationTab data={result.correlation_matrix} />}
       </div>
-
-      <div className="pb-1" />
     </div>
   );
 }
