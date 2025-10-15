@@ -307,8 +307,6 @@ export default function ChartTab({ taskId, isDark: isDarkProp }) {
     };
   }, [isDarkProp]);
 
-  // const API_BASE = "http://localhost:8000"; 라이브 서버에서는 제외
-
   // 라벨 매핑 (컴포넌트 안으로 이동)
   const LABELS = {
     normalized_price: "정규화 주가",
@@ -394,7 +392,7 @@ export default function ChartTab({ taskId, isDark: isDarkProp }) {
   const fetchSummaryData = async () => {
     if (!taskId) return;
     try {
-      const res = await fetch(`${API_BASE}/analysis/result/${taskId}`);
+      const res = await fetch(`${API_BASE_URL}/analysis/result/${taskId}`);
       const data = await res.json();
 
       const basicStats = data?.basic_stats || {};
@@ -522,7 +520,7 @@ export default function ChartTab({ taskId, isDark: isDarkProp }) {
     setPortfolioTable(null);
     const ctrl = new AbortController();
 
-    fetch(`${API_BASE}/analysis/table/${taskId}/portfolio_summary`, { signal: ctrl.signal })
+    fetch(`${API_BASE_URL}/analysis/table/${taskId}/portfolio_summary`, { signal: ctrl.signal })
       .then((r) => r.json())
       .then((j) => setPortfolioTable(j.table))
       .catch(() => setPortfolioTable(null))
@@ -558,12 +556,12 @@ export default function ChartTab({ taskId, isDark: isDarkProp }) {
       const MAX_SERIES = 100;
       const url =
         kind === "corr_vs_vol"
-          ? `${API_BASE}/analysis/data/${taskId}/corr_vs_vol`
+          ? `${API_BASE_URL}/analysis/data/${taskId}/corr_vs_vol`
           : kind === "quarterly_pairs"
-          ? `${API_BASE}/analysis/data/${taskId}/quarterly_corr_pairs`
+          ? `${API_BASE_URL}/analysis/data/${taskId}/quarterly_corr_pairs`
           : kind === "fx_corr_60d"
-          ? `${API_BASE}/analysis/data/${taskId}/fx_corr_60d`
-          : `${API_BASE}/analysis/data/${taskId}/timeseries?kind=${kind}&limit=${MAX_SERIES}`;
+          ? `${API_BASE_URL}/analysis/data/${taskId}/fx_corr_60d`
+          : `${API_BASE_URL}/analysis/data/${taskId}/timeseries?kind=${kind}&limit=${MAX_SERIES}`;
 
       fetch(url, { signal: ctrl.signal })
         .then((r) => r.json())
@@ -577,7 +575,7 @@ export default function ChartTab({ taskId, isDark: isDarkProp }) {
       const ctrl = new AbortController();
       aborts.set(k, ctrl);
 
-      fetch(`${API_BASE}/analysis/data/${taskId}/corr_matrix`, { signal: ctrl.signal })
+      fetch(`${API_BASE_URL}/analysis/data/${taskId}/corr_matrix`, { signal: ctrl.signal })
         .then((r) => r.json())
         .then((j) => setTsMap((prev) => ({ ...prev, [k]: j })))
         .catch(() => setTsMap((prev) => ({ ...prev, [k]: null })))
@@ -725,7 +723,7 @@ export default function ChartTab({ taskId, isDark: isDarkProp }) {
       // 상관관계 엔드포인트가 없는 경우 대비 Fallback
       if (!res.ok && type === "correlation") {
         const fbQs = new URLSearchParams({ separate: "true", theme: isDarkNow ? "dark" : "light" });
-        const fb = `${API_BASE}/analysis/chart/${taskId}/basic?${fbQs.toString()}`;
+        const fb = `${API_BASE_URL}/analysis/chart/${taskId}/basic?${fbQs.toString()}`;
         const fbRes = await fetch(fb);
         if (!fbRes.ok) throw new Error(`HTTP ${res.status} & fallback ${fbRes.status}`);
         const fbData = await fbRes.json();
