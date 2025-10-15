@@ -11,9 +11,10 @@ import '../styles/analysis-mode.css';
 export default function ResultTabs({ taskId, onAnalysisComplete }) {
   const [activeTab, setActiveTab] = useState('summary');
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMessage, setLoadingMessage] = useState('분석 결과를 기다리는 중입니다...'); // 진행 메시지 상태 추가
+  const setLoading = useState(true);
+  const setLoadingMessage = useState('분석 결과를 기다리는 중입니다...'); // 진행 메시지 상태 추가
   const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
 
   const timerRef = useRef(null);
   const abortRef = useRef(null);
@@ -94,6 +95,53 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
     };
   }, [taskId]);
 
+  useEffect(() => {
+    if (!taskId) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/analysis/status/${taskId}`);
+        if (!response.ok) throw new Error('상태 확인 실패');
+        
+        const data = await response.json();
+        setStatus(data); // 상태 정보 업데이트
+
+        if (data.status === 'completed' || data.status === 'failed') {
+          clearInterval(intervalId);
+          if (data.status === 'completed') onAnalysisComplete();
+          if (data.status === 'failed') setError(data.message);
+        }
+      } catch (err) {
+        setError(err.message);
+        clearInterval(intervalId);
+      }
+    }, 2000); // 2초마다 상태 확인
+
+    return () => clearInterval(intervalId);
+  }, [taskId, onAnalysisComplete]);
+
+  // 로딩 중일 때 표시할 UI
+  if (!status || (status.status !== 'completed' && status.status !== 'failed')) {
+    const progress = status ? Math.round(status.progress * 100) : 0;
+    
+    return (
+      <div className="text-center p-8">
+        <h3 className="text-xl font-bold mb-2">{status?.message || '분석 준비 중...'}</h3>
+        {/* 현재 처리 중인 종목 이름 표시 */}
+        {status?.current_stock && (
+          <p className="text-lg text-gray-400 mb-4">{status.current_stock}</p>
+        )}
+        <div className="w-full bg-gray-700 rounded-full h-4">
+          <div 
+            className="bg-blue-500 h-4 rounded-full transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+        <p className="mt-2 text-sm text-gray-300">{progress}% 완료</p>
+      </div>
+    );
+  }
+
   // 에러 우선 표시 (이전에 spinner로 가려지던 문제 해결)
   if (error) {
     return (
@@ -116,16 +164,6 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
         >
           다시 시도
         </button>
-      </div>
-    );
-  }
-
-  // 로딩 또는 아직 결과 없음 → 스피너
-  if (loading || !result) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 space-y-4">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent"></div>
-        <p className="text-secondary text-lg">분석 결과를 불러오는 중입니다...</p>
       </div>
     );
   }
