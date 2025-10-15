@@ -1,6 +1,6 @@
 // components/AnalysisForm.jsx
 import { useState, useEffect, useRef } from 'react';
-import { BarChart3, Calendar, Activity, Play, AlertCircle, X, Search, Building2, TrendingUp } from 'lucide-react';
+import { BarChart3, Calendar, Activity, Play, AlertCircle, X, Search, Building2, TrendingUp, Loader2 } from 'lucide-react';
 import PresetLauncher from './presets/PresetLauncher';
 import { API_BASE_URL } from '../constants'; 
 
@@ -408,8 +408,12 @@ export default function AnalysisForm({ onStart }) {
         className={`group relative w-full md:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 ${isLoading || hasErrors || selectedTickers.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
           }`}
       >
-        <Play className={`w-5 h-5 mr-3 inline-block ${isLoading ? 'animate-spin' : 'group-hover:scale-110 transition-transform'}`} />
-        {isLoading ? '분석 중...' : '분석 시작'}
+        {isLoading ? (
+          <Loader2 className="w-5 h-5 mr-3 inline-block animate-spin" />
+            ) : (
+              <Play className="w-5 h-g mr-3 inline-block group-hover:scale-110 transition-transform" />
+            )}
+        {isLoading ? loadingMessage : '분석 시작'}
       </button>
     </div>
   );
