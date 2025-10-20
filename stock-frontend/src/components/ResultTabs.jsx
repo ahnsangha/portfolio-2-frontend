@@ -13,6 +13,7 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
+  const [serverHealth, setServerHealth] = useState('pending');
   
   // 분석이 완료되었는지 추적하기 위한 ref
   const analysisCompletedRef = useRef(false);
@@ -55,14 +56,37 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
     return () => clearInterval(intervalId);
   }, [taskId]);
 
-  // Effect 2: status가 'completed'로 변경되면 최종 결과를 가져옵니다.
+  // Effect 2: 서버 연결 상태(health)를 주기적으로 확인 
+  useEffect(() => {
+    if (!taskId || analysisCompletedRef.current) return;
+
+    const checkHealth = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/health`);
+        if (res.ok) {
+          setServerHealth('healthy');
+        } else {
+          throw new Error('Server unhealthy');
+        }
+      } catch {
+        setServerHealth('unhealthy');
+      }
+    };
+
+    checkHealth(); // 즉시 1회 실행
+    const healthInterval = setInterval(checkHealth, 5000); // 5초마다 상태 확인
+
+    return () => clearInterval(healthInterval);
+  }, [taskId, status]);
+
+
+  // Effect 3: status가 'completed'로 변경되면 최종 결과 로딩
   useEffect(() => {
     if (status?.status === 'completed' && !result) {
       const fetchResult = async () => {
         try {
           const response = await fetch(`${API_BASE_URL}/analysis/result/${taskId}`);
           if (!response.ok) throw new Error(`최종 결과 로딩 실패 (HTTP ${response.status})`);
-          
           const data = await response.json();
           setResult(data);
           onAnalysisComplete?.();
@@ -76,28 +100,46 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
     }
   }, [status, taskId, result, onAnalysisComplete]);
 
-
-  // 로딩 UI: 결과가 없고, 에러도 없을 때 표시됩니다.
+  // 로딩 UI
   if (!result && !error) {
     const progress = status ? Math.round(status.progress * 100) : 0;
     
+    // 서버 상태에 따른 UI 분기 처리
+    const serverStatusInfo = {
+      healthy: { text: '서버 연결 양호', color: 'text-green-400', pulseColor: 'bg-green-400' },
+      unhealthy: { text: '서버 연결 불안정', color: 'text-red-400', pulseColor: 'bg-red-400' },
+      pending: { text: '서버 연결 중...', color: 'text-yellow-400', pulseColor: 'bg-yellow-400' },
+    };
+    const currentServerStatus = serverStatusInfo[serverHealth];
+
     return (
-      <div className="text-center p-8 bg-panel bg-panel-dark backdrop-blur-xl rounded-2xl shadow-2xl border border-panel">
+      <div className="text-center p-8 bg-panel bg-panel-dark backdrop-blur-xl rounded-2xl shadow-2xl border border-panel text-primary">
         <h3 className="text-xl font-bold mb-2">{status?.message || '분석 준비 중...'}</h3>
         {status?.current_stock && (
           <p className="text-lg text-gray-400 mb-4">{status.current_stock}</p>
         )}
-        <div className="w-full bg-slate-700 rounded-full h-4 overflow-hidden">
+        
+        {/* 진행률 바에 빛나는 효과(shimmer) 추가 */}
+        <div className="w-full bg-slate-700 rounded-full h-4 overflow-hidden relative shimmer-container">
           <div 
             className="bg-blue-500 h-4 rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
-        <p className="mt-2 text-sm text-gray-300">{progress}% 완료</p>
+        <div className="flex justify-between items-center mt-2 text-sm">
+          {/* 서버 상태 표시등 UI  */}
+          <div className={`flex items-center gap-2 ${currentServerStatus.color}`}>
+            <span className={`relative flex h-3 w-3`}>
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${currentServerStatus.pulseColor} opacity-75`}></span>
+              <span className={`relative inline-flex rounded-full h-3 w-3 ${currentServerStatus.pulseColor}`}></span>
+            </span>
+            <span>{currentServerStatus.text}</span>
+          </div>
+          <span className="text-gray-300">{progress}% 완료</span>
+        </div>
       </div>
     );
   }
-
   // 에러 UI: 에러가 발생하면 최우선으로 표시됩니다.
   if (error) {
     return (

@@ -438,3 +438,29 @@ html.dark, body.dark, [data-theme="dark"], .theme-dark, .dark-mode {
   color:#e5e7eb !important;
   border-color: rgba(71,85,105) !important;
 }
+
+/* ✅ --- 로딩 바의 빛나는 효과(shimmer)를 위한 CSS 애니메이션 --- ✅ */
+.shimmer-container {
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+.shimmer-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40px;
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%);
+  animation: shimmer 2.5s infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(1000%); /* 컨테이너 너비에 따라 조절 가능 */
+  }
+}
