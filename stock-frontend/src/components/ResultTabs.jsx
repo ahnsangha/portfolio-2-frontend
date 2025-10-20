@@ -9,7 +9,12 @@ import { API_BASE_URL } from '../constants';
 import '../styles/analysis-mode.css';
 
 export default function ResultTabs({ taskId, onAnalysisComplete }) {
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    // URL에 유효한 탭 ID가 없으면 'summary'를 기본값으로 사용합니다.
+    const validTabs = ['summary', 'charts', 'performance', 'correlation'];
+    return validTabs.includes(hash) ? hash : 'summary';
+  });
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
@@ -172,7 +177,7 @@ export default function ResultTabs({ taskId, onAnalysisComplete }) {
         {tabs.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
             className={`
               group flex items-center space-x-2 px-6 py-3 font-semibold rounded-xl transition-all duration-300
               ${activeTab === tab.id
